@@ -1,3 +1,4 @@
+// MazeParser.kt
 package ve.usb.libGrafo
 
 import java.io.File
@@ -5,7 +6,7 @@ import java.io.File
 class MazeParser {
     companion object {
         fun parseFromFile(filename: String): Maze {
-            val lines = File(filename).readLines()
+            val lines = File(filename).readLines().map { it.trim() }
             require(lines.isNotEmpty()) { "Archivo vacío" }
             
             // Parsear primera línea: "N=20, M=20, P=15"
@@ -16,13 +17,19 @@ class MazeParser {
             val cols = params["M"] ?: throw IllegalArgumentException("Falta parámetro M") 
             val health = params["P"] ?: throw IllegalArgumentException("Falta parámetro P")
             
-            // Parsear grid
-            val gridLines = lines.subList(1, lines.size)
-            require(gridLines.size == rows) { "Número de filas no coincide con N=$rows" }
+            // Parsear grid - tomar las siguientes 'rows' líneas
+            val gridLines = lines.subList(1, 1 + rows)
             
-            val grid = gridLines.map { line ->
-                require(gridLines.size == cols) { " Longitud de línea no coincide con M=$cols" }
-                line.toList()
+            // Validar y normalizar las líneas del grid - ESPECIFICAR TIPO List<List<Char>>
+            val grid: List<List<Char>> = gridLines.map { line ->
+                val normalizedLine = if (line.length < cols) {
+                    line.padEnd(cols, ' ')
+                } else if (line.length > cols) {
+                    line.substring(0, cols)
+                } else {
+                    line
+                }
+                normalizedLine.toList()
             }
             
             return Maze(rows, cols, health, grid)
